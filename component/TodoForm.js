@@ -1,28 +1,33 @@
 import { Button, TextField } from "@mui/material";
 import { useState,useContext,useRef, useEffect } from 'react'
 import { db } from '../firebase'
-import { addDoc,collection,serverTimestamp } from '@firebase/firestore'
+import { addDoc,collection,serverTimestamp,doc, updateDoc, setDoc } from 'firebase/firestore'
 import { TodoContext } from '../TodoContext'
 
 const TodoForm = () => {
     const inputAreaRef = useRef();
-    const { showAlert, todo,setTodo } = useContext(TodoContext);
-    const onSubmit = async () => {
-        const colRef = collection(db, 'simpletodo');
-        const docRef = await addDoc(colRef,{...todo,timestamp : 
-        serverTimestamp()})
-        showAlert('success',`todo with id ${docRef.id} has been added`);
-        setTodo({title : '', details : ''});
-        
+    let { titleData,setTitleData, detailsData, setDetailsData, showAlert,update } = useContext(TodoContext);  
+    const colRef = collection(db,'simpletodo');
+    const handleSubmit = async () => {
+        addDoc(colRef, {
+            titleData,
+            detailsData,
+            timestamp : serverTimestamp(),
+        }
+        ) .then(() => {
+            setTitleData('')
+            setDetailsData('')
+            showAlert('success', 'todo has been added')
+        }) .catch(err => {
+            console.log(err.message);
+        })
     }
 
     useEffect(() => {
         const checkClickedOutside = e => {
             if(!inputAreaRef.current.contains(e.target)) {
-                console.log(`clicked outside input area`);
-                setTodo({title : '', details : ''});
-            } else {
-                console.log(`inside input area`);
+                setTitleData('')
+                setDetailsData('')
             }
         }
         document.addEventListener('mousedown',checkClickedOutside);
@@ -35,16 +40,26 @@ const TodoForm = () => {
             <div ref={inputAreaRef}>
                 <TextField
                 fullWidth label="title" margin="normal"
-                value={todo.title}
-                onChange={e => setTodo({...todo, title : e.target.value})}
+                value={titleData}
+                onChange={e => setTitleData(e.target.value)}
                 />
                 <TextField fullWidth label="detail"
                 multiline maxRows={4}
-                value={todo.details}
-                onChange={e => setTodo({...todo, details : e.target.value})}
+                value={detailsData}
+                onChange={e => setDetailsData(e.target.value)}
                 />
+
+              {update ? (
+                  <Button variant='contained' sx={{marginBlock: '10px'}}>
+                      Update Todo
+                  </Button>
+              ):(
+                <Button variant='contained'  sx={{marginBlock: '10px'}} onClick={handleSubmit}>
+                    Add Todo
+                </Button>
+              )}
             </div>
-            <Button onClick={onSubmit} variant="contained" sx={{ mt: 3 }}>Add new todo</Button>
+            
         </>
     );
 }

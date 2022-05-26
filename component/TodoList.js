@@ -7,8 +7,9 @@ import { db } from "../firebase";
 import { useContext } from "react";
 import { TodoContext } from "../TodoContext";
 
-const TodoList = ({id,timestamp,title,details}) => {
-    const { showAlert,setTodo } = useContext(TodoContext);
+const TodoList = ({id,timestamp,titleData,details}) => {
+    console.log(titleData)
+    const { showAlert,titleData,detailsData,setTitleData,setDetailsData,setUpdate } = useContext(TodoContext);
     const deleteTodo = async(id,e) => {
         e.stopPropagation();
         const docRef = doc(db,'simpletodo',id)
@@ -17,7 +18,11 @@ const TodoList = ({id,timestamp,title,details}) => {
     }
     return (
         <ListItem
-        onClick={() => setTodo({title,details,id,timestamp})}
+        onClick={() => {
+            setTitleData(titleData)
+            setDetailsData(detailsData)
+            setUpdate(true)
+        }}
         sx={{
             mt: 2,
             boxShadow: 3 ,    
@@ -35,7 +40,7 @@ const TodoList = ({id,timestamp,title,details}) => {
         }
         >
             <ListItemText
-            primary={title}
+            primary={titleData}
             secondary={moment(timestamp).format('MMMM Do YYYY')}
             />
         </ListItem>

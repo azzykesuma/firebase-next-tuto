@@ -1,18 +1,53 @@
 import { Container } from '@mui/material'
-import Todolist from '../component/Todos'
 import TodoForm from '../component/TodoForm'
 import { TodoContext } from '../TodoContext';
 import {
   Snackbar,
   Alert
 } from '@mui/material'
-import { useState } from 'react'
+import { useState,useEffect } from 'react'
+// firestore
+import {
+  collection,
+  query,
+  doc,
+  orderBy,
+  onSnapshot,
+  querySnapshot
+} from 'firebase/firestore'
+import {db} from '../firebase'
 
 export default function Home() {
   const [alert,setAlert] = useState('success');
   const [message,setMessage] = useState('');
   const [open,setOpen] = useState(false);
-  const [todo,setTodo] = useState({title : '', details : ''});
+  const [titleData,setTitleData] = useState('')
+  const [detailsData,setDetailsData] = useState('')
+  const [update,setUpdate] = useState(false)
+
+  // create data
+
+  // read data
+  const [todos,setTodos] = useState([]);
+  useEffect(() => {
+      const colRef = collection(db,"simpletodo");
+      const q = query(colRef,orderBy('timestamp','desc'));
+      const unsub = onSnapshot(q,(querySnapshot) => {
+          setTodos(querySnapshot.docs.map(doc => ({
+              ...doc.data(),
+              id : doc.id,
+              timestamp : doc.data().timestamp?.toDate().getTime()
+          })))
+      });
+      return unsub
+  },[])
+
+  // update data
+  
+
+  // delete data
+  
+
 
   const showAlert = (type,msg) => {
     setAlert(type)
@@ -29,7 +64,10 @@ export default function Home() {
   };
 
   return (
-    <TodoContext.Provider value={{showAlert,todo,setTodo}}>
+    <TodoContext.Provider value={{
+      showAlert,titleData,detailsData,
+      setTitleData,setDetailsData,update,setUpdate
+      }}>
       <Container maxWidth="sm">
         <TodoForm />
         <Snackbar
@@ -38,7 +76,6 @@ export default function Home() {
         >
           <Alert severity={alert}>{message}</Alert>
         </Snackbar>
-        <Todolist />
       </Container>
     </TodoContext.Provider>
   )
